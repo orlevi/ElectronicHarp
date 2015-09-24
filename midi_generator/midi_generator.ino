@@ -1,18 +1,17 @@
-#define midi_reset 12
-#define qout  7
-#define clk  8
-#define load 9
+#define midi_reset 10
+#define data_in  2
+#define clk  3
+#define load 4
+#define SENSORS_NUM  8
 
-int curNote1 = 0;
-int curNote2 = 0;
-int prevNote1 = 0;
-int prevNote2 = 0;
+int curr_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0};
+int prev_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0};
 
 void setup(){
   Serial.begin(31250);
   pinMode(midi_reset, OUTPUT);
   
-  pinMode(qout, INPUT);
+  pinMode(data_in, INPUT);
   pinMode(clk, OUTPUT);
   pinMode(load, OUTPUT);
   
@@ -26,16 +25,17 @@ void setup(){
 void loop(){
    readData();
    playNotes();
+   //delay(1000);
 }
 
 void    playNotes(){
-  if (prevNote1 == 0 && curNote1 == 1){
-    playNote(67, 80);
-  }
-  if (prevNote2 == 0 && curNote2 == 1){
-    playNote(81, 80);
+      for(int i=0; i<SENSORS_NUM; i++){
+          if (prev_notes[i] == 0 && curr_notes[i] == 1){
+                playNote(67+i, 80);
+          }
+      }    
 }
-}
+
 void setProg(byte channel, byte instrument){
   Serial.write(0xc0 + channel);
   delay(10);
@@ -55,20 +55,16 @@ void playNote(byte note, byte velocity){
 }
 
 void readData(){
-    //load
-    digitalWrite(load, LOW);
-    //delay(50);
-    digitalWrite(load, HIGH);
-    //delay(50);
-    int c = digitalRead(qout);
-    
-    prevNote1 = curNote1;
-    curNote1 = c;
-    digitalWrite(clk, LOW);
-    //delay(5);
-    digitalWrite(clk, HIGH);
-    //delay(5);
-    int c2 = digitalRead(qout);
-    prevNote2 =  curNote2;
-    curNote2 = c2;
+      digitalWrite(load, LOW);
+      //delay(50);
+      digitalWrite(load, HIGH);
+    for(int i=0; i<SENSORS_NUM; i++){
+      prev_notes[i] = curr_notes[i];
+      curr_notes[i] = digitalRead(data_in);
+      digitalWrite(clk, LOW);
+      //delay(50);
+      digitalWrite(clk, HIGH);
+      //delay(50);
+      
+    }
 }
