@@ -2,26 +2,34 @@
 #define data_in  2
 #define clk  3
 #define load 4
-#define pwm 5
-#define volume_pin 6
+#define pwm1 5
+#define pwm2 6
+#define volume_pin 7
+#define less_notes_pin 8
 #define led_pin 13
 
 #define SENSORS_NUM  24
 #define CHANNEL 1
 #define INSTRUMENT  46
-//#define AUTO_PLAY_TIME (1000*5)
-unsigned long AUTO_PLAY_TIME =  1000*60*5;
+#define SEC_TO_MILI 1000ul
+#define MINUTE_TO_SEC 60
+#define AUTO_PLAY_MINUTES 2
+#define AUTO_PLAY_TIME (AUTO_PLAY_MINUTES*MINUTE_TO_SEC*SEC_TO_MILI)
+//unsigned long AUTO_PLAY_TIME =  1000*60*5;
 #define TIME_BETWEEN_SAMPLES 100    // [mS]
 #define DELTA 2.5                                          // conversion from midi ticks to milliseconds
 #define HEAD_WIDTH 8                                 // number of covered sensors to enter SAFTY mode
 #define SAFETY_SAMPLE_DELAY 100       // [mS]
-//#define VOLUME_TIMEOUT (1000*60)
-unsigned int VOLUME_TIMEOUT = 1000*60; 
+#define VOLUME_TIMEOUT_MINUTES 1
+#define VOLUME_TIMEOUT (VOLUME_TIMEOUT_MINUTES*MINUTE_TO_SEC*SEC_TO_MILI)
+//unsigned int VOLUME_TIMEOUT = 1000*60; 
 #define LOW_VOLUME 20                               // range from 0-127
 #define HIGH_VOLUME 80                             // range from 0-127
 #define DEBOUNCING_DELAY 1000
+#define PRE_SAMPLE_DELAY 30                 // [uS] time between laser ON to sampling
 
-int notes[28] = {48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88,89,91,93,95};
+int notes[SENSORS_NUM] = {48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88};
+int less_notes[SENSORS_NUM] = {0,60,0,62,0,64,0,65,0,67,0,69,0,71,0,72,0,74,0,76,0,77,0,79};
 int curr_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int prev_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 unsigned long lastPlayTime = 0;
@@ -35,14 +43,17 @@ void setup(){
   pinMode(data_in, INPUT);
   pinMode(clk, OUTPUT);
   pinMode(load, OUTPUT);
-  pinMode(pwm, OUTPUT);
+  pinMode(pwm1, OUTPUT);
+  pinMode(pwm2, OUTPUT);  
   pinMode(volume_pin, INPUT_PULLUP);
+  pinMode(less_notes_pin, INPUT_PULLUP);
   pinMode(led_pin, OUTPUT);
   
   digitalWrite(load, HIGH);
   digitalWrite(clk, HIGH);
   digitalWrite(midi_reset, HIGH);
-  digitalWrite(pwm,LOW);
+  digitalWrite(pwm1,LOW);
+  digitalWrite(pwm2,LOW);  
   digitalWrite(led_pin, LOW);
   delay(1000);
   setProg(1, INSTRUMENT);
@@ -75,12 +86,10 @@ void pollPins(){
      volumeModeStartTime = millis();
      volumeMode = !volumeMode;
      setVolume(CHANNEL, volumeMode? LOW_VOLUME: HIGH_VOLUME); 
-     digitalWrite(led_pin, HIGH);
   }
-  if((millis() - volumeModeStartTime) > VOLUME_TIMEOUT){
+  if(volumeMode && (millis() - volumeModeStartTime) > VOLUME_TIMEOUT){
     volumeMode = 0;
     setVolume(CHANNEL, HIGH_VOLUME);   
-         digitalWrite(led_pin, LOW);
 } 
 }
 
@@ -94,7 +103,8 @@ void    playNotes(){
          return;
        }
            if (prev_notes[i] == 0 && curr_notes[i] == 1){ 
-                playNote(notes[28-i], 80);
+                if (digitalRead(less_notes_pin)) playNote(less_notes[SENSORS_NUM-i-1], 80);
+                else                                                              playNote(notes[SENSORS_NUM-i-1], 80);
                 lastPlayTime = millis();
           }
       }    
@@ -161,10 +171,13 @@ void stopNote(byte channel, byte note, byte velocity){
 }
 
 void readData(){
-      digitalWrite(pwm,HIGH);
-      delayMicroseconds(30);
+      if (!digitalRead(less_notes_pin)) digitalWrite(pwm1,HIGH);  // power the pwm1 lasers only if we are not in the "less notes mode" 
+      digitalWrite(pwm2,HIGH);
+      delayMicroseconds(PRE_SAMPLE_DELAY);
       digitalWrite(load, LOW);
-      digitalWrite(pwm,LOW);
+      delayMicroseconds(PRE_SAMPLE_DELAY);
+      digitalWrite(pwm1,LOW);
+      digitalWrite(pwm2,LOW);
       //delay(50);
       digitalWrite(load, HIGH);
     for(int i=0; i<SENSORS_NUM; i++){
