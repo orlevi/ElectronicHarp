@@ -28,7 +28,8 @@
 #define DEBOUNCING_DELAY 1000
 #define PRE_SAMPLE_DELAY 30                 // [uS] time between laser ON to sampling
 
-int notes[SENSORS_NUM] = {48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88};
+//int notes[SENSORS_NUM] = {48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88};
+int notes[SENSORS_NUM] = {64,65,67,69,71,72,74,76,77,79,81,83,84,86,88,89,91,93,95,96,98,100,101,103};
 int less_notes[SENSORS_NUM] = {0,60,0,62,0,64,0,65,0,67,0,69,0,71,0,72,0,74,0,76,0,77,0,79};
 int curr_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int prev_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -56,7 +57,8 @@ void setup(){
   digitalWrite(pwm2,LOW);  
   digitalWrite(led_pin, LOW);
   delay(1000);
-  setProg(1, INSTRUMENT);
+  setProg(CHANNEL, INSTRUMENT);
+  setVolume(CHANNEL, HIGH_VOLUME); 
 }
 
 void loop(){
