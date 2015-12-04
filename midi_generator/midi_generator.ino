@@ -11,6 +11,7 @@
 #define SENSORS_NUM  24
 #define CHANNEL 1
 #define INSTRUMENT  46
+#define APPLAUSE 126
 #define SEC_TO_MILI 1000ul
 #define MINUTE_TO_SEC 60
 #define AUTO_PLAY_MINUTES 2
@@ -28,7 +29,14 @@
 #define DEBOUNCING_DELAY 1000
 #define PRE_SAMPLE_DELAY 30                 // [uS] time between laser ON to sampling
 
-int notes[SENSORS_NUM] = {48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88};
+//int LITTLE_YONI[] = {7,-2, 0, 1, -2, 0, -1, 1, 1, 1, 1, 0, 0, 0, -2, 0, 1, -2, 0, -1, 2, 2, 0, -4, 1, 0, 0, 0, 0, 1, 1, -1, 0, 0, 0, 0, 1, 1, 0, -2, 0, 1, -2, 0, -1, 2, 2, 0, -4};
+int LITTLE_YONI[] = {7,-3, 0, 1, -3, 0, -2, 2, 2, 1, 2, 0, 0, 0, -3, 0, 1, -3, 0, -2, 4, 3, 0, -7, 2, 0, 0, 0, 0, 2, 1, -1, 0, 0, 0, 0, 1, 2, 0, -3, 0, 1, -3, 0, -2, 4, 3, 0, -7};
+int index_of_yoni = 0 ;
+int last_played_note = 0;
+int YONI_WINS = 49;
+
+//int notes[SENSORS_NUM] = {48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88};
+int notes[SENSORS_NUM] = {60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88,89,91,93,95,96,98,100};
 int less_notes[SENSORS_NUM] = {0,60,0,62,0,64,0,65,0,67,0,69,0,71,0,72,0,74,0,76,0,77,0,79};
 int curr_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int prev_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -56,7 +64,10 @@ void setup(){
   digitalWrite(pwm2,LOW);  
   digitalWrite(led_pin, LOW);
   delay(1000);
-  setProg(1, INSTRUMENT);
+  setProg(CHANNEL, INSTRUMENT);
+  setProg(CHANNEL + 1, APPLAUSE);
+  setVolume(CHANNEL, HIGH_VOLUME); 
+  setVolume(CHANNEL + 1, HIGH_VOLUME*2);
 }
 
 void loop(){
@@ -152,10 +163,37 @@ void setProg(byte channel, byte instrument){
 void playNote(byte note, byte velocity){
 stopNote(CHANNEL, note, velocity);
 startNote(CHANNEL, note, velocity);
+littleYoniCompare(note);
+last_played_note = note;  
+
+}
+
+void littleYoniCompare(int note){
+  if (index_of_yoni == 0){
+    if(note%12 == LITTLE_YONI[index_of_yoni]){
+      //if(note == 67){
+      index_of_yoni += 1;
+    }
+  }else{
+     if(note -  last_played_note == LITTLE_YONI[index_of_yoni]){
+        index_of_yoni += 1;
+     }else{
+       index_of_yoni = 0;
+     }
+  }
+  if (index_of_yoni == YONI_WINS){
+    kapaim();
+    index_of_yoni = 0;
+  }
+}
+
+void kapaim(){
+  startNote(CHANNEL +1, 80, 80);
+  delay(10*1000);
+  stopNote(CHANNEL +1, 80, 80);
 }
 
 void startNote(byte channel, byte note, byte velocity){
-
 // note on
    Serial.write(0x90 + channel);
    Serial.write(note);
