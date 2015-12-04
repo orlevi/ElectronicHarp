@@ -29,8 +29,6 @@
 #define DEBOUNCING_DELAY 1000
 #define PRE_SAMPLE_DELAY 30                 // [uS] time between laser ON to sampling
 
-<<<<<<< HEAD
-//int LITTLE_YONI[] = {7,-2, 0, 1, -2, 0, -1, 1, 1, 1, 1, 0, 0, 0, -2, 0, 1, -2, 0, -1, 2, 2, 0, -4, 1, 0, 0, 0, 0, 1, 1, -1, 0, 0, 0, 0, 1, 1, 0, -2, 0, 1, -2, 0, -1, 2, 2, 0, -4};
 int LITTLE_YONI[] = {7,-3, 0, 1, -3, 0, -2, 2, 2, 1, 2, 0, 0, 0, -3, 0, 1, -3, 0, -2, 4, 3, 0, -7, 2, 0, 0, 0, 0, 2, 1, -1, 0, 0, 0, 0, 1, 2, 0, -3, 0, 1, -3, 0, -2, 4, 3, 0, -7};
 int index_of_yoni = 0 ;
 int last_played_note = 0;
@@ -38,10 +36,6 @@ int YONI_WINS = 49;
 
 //int notes[SENSORS_NUM] = {48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88};
 int notes[SENSORS_NUM] = {60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88,89,91,93,95,96,98,100};
-=======
-//int notes[SENSORS_NUM] = {48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88};
-int notes[SENSORS_NUM] = {64,65,67,69,71,72,74,76,77,79,81,83,84,86,88,89,91,93,95,96,98,100,101,103};
->>>>>>> bbbe0eeb424bce69970878bbf0678c3e82187e8d
 int less_notes[SENSORS_NUM] = {0,60,0,62,0,64,0,65,0,67,0,69,0,71,0,72,0,74,0,76,0,77,0,79};
 int curr_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int prev_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -70,13 +64,9 @@ void setup(){
   digitalWrite(led_pin, LOW);
   delay(1000);
   setProg(CHANNEL, INSTRUMENT);
-<<<<<<< HEAD
   setProg(CHANNEL + 1, APPLAUSE);
   setVolume(CHANNEL, HIGH_VOLUME); 
   setVolume(CHANNEL + 1, HIGH_VOLUME*2);
-=======
-  setVolume(CHANNEL, HIGH_VOLUME); 
->>>>>>> bbbe0eeb424bce69970878bbf0678c3e82187e8d
 }
 
 void loop(){
