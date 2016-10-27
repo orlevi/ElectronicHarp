@@ -24,8 +24,8 @@
 #define VOLUME_TIMEOUT_MINUTES 1
 #define VOLUME_TIMEOUT (VOLUME_TIMEOUT_MINUTES*MINUTE_TO_SEC*SEC_TO_MILI)
 //unsigned int VOLUME_TIMEOUT = 1000*60; 
-#define LOW_VOLUME 20                               // range from 0-127
-#define HIGH_VOLUME 80                             // range from 0-127
+#define LOW_VOLUME 80 //20                               // range from 0-127
+#define HIGH_VOLUME 120 //80                             // range from 0-127
 #define DEBOUNCING_DELAY 1000
 #define PRE_SAMPLE_DELAY 30                 // [uS] time between laser ON to sampling
 
@@ -74,7 +74,9 @@ void loop(){
    playNotes();
    //delay(1000);
    if ((millis() - lastPlayTime) > AUTO_PLAY_TIME){
-       playSong();
+     setVolume(CHANNEL, LOW_VOLUME); 
+     playSong();
+     setVolume(CHANNEL, HIGH_VOLUME); 
        //playPsy();
    }
    pollPins();
