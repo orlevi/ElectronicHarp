@@ -24,15 +24,15 @@
 #define VOLUME_TIMEOUT_MINUTES 1
 #define VOLUME_TIMEOUT (VOLUME_TIMEOUT_MINUTES*MINUTE_TO_SEC*SEC_TO_MILI)
 //unsigned int VOLUME_TIMEOUT = 1000*60; 
-#define LOW_VOLUME 80 //20                               // range from 0-127
-#define HIGH_VOLUME 120 //80                             // range from 0-127
+#define LOW_VOLUME 40 //20                               // range from 0-127
+#define HIGH_VOLUME 100 //80                             // range from 0-127
 #define DEBOUNCING_DELAY 1000
 #define PRE_SAMPLE_DELAY 30                 // [uS] time between laser ON to sampling
 
 int LITTLE_YONI[] = {7,-3, 0, 1, -3, 0, -2, 2, 2, 1, 2, 0, 0, 0, -3, 0, 1, -3, 0, -2, 4, 3, 0, -7, 2, 0, 0, 0, 0, 2, 1, -1, 0, 0, 0, 0, 1, 2, 0, -3, 0, 1, -3, 0, -2, 4, 3, 0, -7};
 int index_of_yoni = 0 ;
 int last_played_note = 0;
-int YONI_WINS = 49;
+int YONI_WINS = 13;
 
 //int notes[SENSORS_NUM] = {48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88};
 int notes[SENSORS_NUM] = {60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86,88,89,91,93,95,96,98,100};
@@ -42,6 +42,13 @@ int prev_notes[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 unsigned long lastPlayTime = 0;
 unsigned long volumeModeStartTime = 0;
 int volumeMode = 0;
+
+
+unsigned long DEBOUNCE_THREASHOLD = 20;
+unsigned long  changeTime0[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+unsigned long  changeTime1[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+unsigned long  changeTime2[SENSORS_NUM] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
 
 void setup(){
   Serial.begin(31250);
@@ -115,9 +122,11 @@ void    playNotes(){
          return;
        }
            if (prev_notes[i] == 0 && curr_notes[i] == 1){ 
-                if (digitalRead(less_notes_pin)) playNote(less_notes[SENSORS_NUM-i-1], 80);
-                else                                                              playNote(notes[SENSORS_NUM-i-1], 80);
-                lastPlayTime = millis();
+                if ((changeTime0[i] - changeTime1[i] > DEBOUNCE_THREASHOLD) && (changeTime1[i] - changeTime2[i] > DEBOUNCE_THREASHOLD)){
+                    if (digitalRead(less_notes_pin)) playNote(less_notes[SENSORS_NUM-i-1], 80);
+                    else                             playNote(notes[SENSORS_NUM-i-1], 80);
+                    lastPlayTime = millis();
+                }
           }
       }    
 }
@@ -219,9 +228,15 @@ void readData(){
       digitalWrite(pwm2,LOW);
       //delay(50);
       digitalWrite(load, HIGH);
+    unsigned long t = millis();
     for(int i=0; i<SENSORS_NUM; i++){
       prev_notes[i] = curr_notes[i];
       curr_notes[i] = digitalRead(data_in);
+      if (curr_notes[i] != prev_notes[i]){
+        changeTime2[i] = changeTime1[i];
+        changeTime1[i] = changeTime0[i];
+        changeTime0[i] = t;
+      }
       digitalWrite(clk, LOW);
       //delay(50);
       digitalWrite(clk, HIGH);
